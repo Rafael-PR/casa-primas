@@ -374,24 +374,37 @@ export default function FlappyBirdGame() {
   return (
     <div className="flex flex-col items-center gap-4">
       <div
-        className="relative rounded-2xl overflow-hidden shadow-lg"
-        style={{ width: CANVAS_W, maxWidth: "100%" }}
+        className="relative rounded-2xl overflow-hidden shadow-lg max-w-[280px] sm:max-w-[400px]"
+        style={{ width: CANVAS_W }}
       >
         <canvas
           ref={canvasRef}
           width={CANVAS_W}
           height={CANVAS_H}
           onClick={handleCanvasClick}
-          className="block cursor-pointer"
-          style={{ width: "100%", height: "auto" }}
+          className="block cursor-pointer w-full h-auto"
         />
       </div>
-      <button
-        onClick={handleButtonClick}
-        className="px-6 py-2 rounded-full bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors"
-      >
-        {displayStatus === "gameover" ? "Nochmal" : "Spielen"}
-      </button>
+
+      {displayStatus !== "playing" && (
+        <button
+          onClick={handleButtonClick}
+          className="px-6 py-2 rounded-full bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors"
+        >
+          {displayStatus === "gameover" ? "Nochmal" : "Spielen"}
+        </button>
+      )}
+
+      {/* Mobile Flap Button */}
+      {displayStatus === "playing" && (
+        <button
+          onTouchStart={(e) => { e.preventDefault(); flap(); }}
+          className="sm:hidden w-full max-w-[280px] py-5 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors select-none"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4L4 12h5v8h6v-8h5L12 4z" fill="#1d1d1f"/></svg>
+          <span className="ml-2 text-sm font-medium text-gray-700">Flap</span>
+        </button>
+      )}
     </div>
   );
 }

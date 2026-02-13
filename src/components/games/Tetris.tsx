@@ -554,38 +554,40 @@ export default function TetrisGame() {
         </div>
       </div>
 
-      {/* Game area */}
-      <div className="flex items-start gap-4">
-        {/* Main canvas */}
-        <div className="relative">
-          <canvas
-            ref={canvasRef}
-            width={BOARD_W}
-            height={BOARD_H}
-            className="rounded-xl border border-gray-100 bg-white"
-            style={{ width: BOARD_W, height: BOARD_H }}
-          />
+      {/* Game area — scaled down on mobile so buttons stay visible */}
+      <div className="scale-[0.55] sm:scale-100 origin-top h-[315px] sm:h-auto">
+        <div className="flex items-start gap-4">
+          {/* Main canvas */}
+          <div className="relative">
+            <canvas
+              ref={canvasRef}
+              width={BOARD_W}
+              height={BOARD_H}
+              className="rounded-xl border border-gray-100 bg-white"
+              style={{ width: BOARD_W, height: BOARD_H }}
+            />
 
-          {/* Game over overlay */}
-          {gameStatus === "gameover" && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-sm">
-              <span className="text-lg font-semibold text-gray-700">Game Over</span>
-            </div>
-          )}
-        </div>
+            {/* Game over overlay */}
+            {gameStatus === "gameover" && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-sm">
+                <span className="text-lg font-semibold text-gray-700">Game Over</span>
+              </div>
+            )}
+          </div>
 
-        {/* Preview panel */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-xs uppercase tracking-wide text-gray-400">
-            {gameStatus !== "idle" ? "Vorschau" : ""}
-          </span>
-          <canvas
-            ref={previewRef}
-            width={PREVIEW_SIZE}
-            height={PREVIEW_SIZE}
-            className="rounded-lg border border-gray-100 bg-white"
-            style={{ width: PREVIEW_SIZE, height: PREVIEW_SIZE }}
-          />
+          {/* Preview panel */}
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs uppercase tracking-wide text-gray-400">
+              {gameStatus !== "idle" ? "Vorschau" : ""}
+            </span>
+            <canvas
+              ref={previewRef}
+              width={PREVIEW_SIZE}
+              height={PREVIEW_SIZE}
+              className="rounded-lg border border-gray-100 bg-white"
+              style={{ width: PREVIEW_SIZE, height: PREVIEW_SIZE }}
+            />
+          </div>
         </div>
       </div>
 
