@@ -284,6 +284,39 @@ export default function SnakeGame() {
           {gameState === "idle" ? "Spielen" : "Nochmal"}
         </button>
       )}
+
+      {/* Mobile D-Pad */}
+      {gameState === "playing" && (
+        <div className="sm:hidden flex flex-col items-center gap-1 mt-2 select-none">
+          <button
+            onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== "DOWN") nextDirRef.current = "UP"; }}
+            className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4L16 13H4L10 4Z" fill="#1d1d1f"/></svg>
+          </button>
+          <div className="flex gap-1">
+            <button
+              onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== "RIGHT") nextDirRef.current = "LEFT"; }}
+              className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L13 4V16L4 10Z" fill="#1d1d1f"/></svg>
+            </button>
+            <div className="w-14 h-14" />
+            <button
+              onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== "LEFT") nextDirRef.current = "RIGHT"; }}
+              className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M16 10L7 4V16L16 10Z" fill="#1d1d1f"/></svg>
+            </button>
+          </div>
+          <button
+            onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== "UP") nextDirRef.current = "DOWN"; }}
+            className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 16L4 7H16L10 16Z" fill="#1d1d1f"/></svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

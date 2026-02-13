@@ -434,56 +434,65 @@ export default function TetrisGame() {
     [render]
   );
 
+  // Input handler (shared by keyboard and touch)
+  const handleInput = useCallback((action: "left" | "right" | "down" | "rotate" | "drop") => {
+    const gs = gameRef.current;
+    if (!gs || gs.status !== "playing") return;
+
+    switch (action) {
+      case "left":
+        if (isValid(gs.board, gs.current.type, gs.current.rotation, gs.current.row, gs.current.col - 1)) {
+          gs.current.col--;
+        }
+        break;
+      case "right":
+        if (isValid(gs.board, gs.current.type, gs.current.rotation, gs.current.row, gs.current.col + 1)) {
+          gs.current.col++;
+        }
+        break;
+      case "down":
+        if (isValid(gs.board, gs.current.type, gs.current.rotation, gs.current.row + 1, gs.current.col)) {
+          gs.current.row++;
+          gs.score += 1;
+          gs.lastDrop = performance.now();
+        }
+        break;
+      case "rotate": {
+        const newRotation = (gs.current.rotation + 1) % 4;
+        const result = tryRotate(gs.board, gs.current, newRotation);
+        if (result) {
+          gs.current.row = result.row;
+          gs.current.col = result.col;
+          gs.current.rotation = result.rotation;
+        }
+        break;
+      }
+      case "drop": {
+        const ghostRow = getGhostRow(gs.board, gs.current);
+        gs.score += (ghostRow - gs.current.row) * 2;
+        gs.current.row = ghostRow;
+        gs.lastDrop = 0;
+        break;
+      }
+    }
+
+    render();
+  }, [render]);
+
   // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const gs = gameRef.current;
-      if (!gs || gs.status !== "playing") return;
-
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(e.key)) {
         e.preventDefault();
       }
 
       switch (e.key) {
-        case "ArrowLeft":
-          if (isValid(gs.board, gs.current.type, gs.current.rotation, gs.current.row, gs.current.col - 1)) {
-            gs.current.col--;
-          }
-          break;
-        case "ArrowRight":
-          if (isValid(gs.board, gs.current.type, gs.current.rotation, gs.current.row, gs.current.col + 1)) {
-            gs.current.col++;
-          }
-          break;
-        case "ArrowDown":
-          if (isValid(gs.board, gs.current.type, gs.current.rotation, gs.current.row + 1, gs.current.col)) {
-            gs.current.row++;
-            gs.score += 1;
-            gs.lastDrop = performance.now();
-          }
-          break;
-        case "ArrowUp": {
-          const newRotation = (gs.current.rotation + 1) % 4;
-          const result = tryRotate(gs.board, gs.current, newRotation);
-          if (result) {
-            gs.current.row = result.row;
-            gs.current.col = result.col;
-            gs.current.rotation = result.rotation;
-          }
-          break;
-        }
-        case " ": {
-          // Hard drop
-          e.preventDefault();
-          const ghostRow = getGhostRow(gs.board, gs.current);
-          gs.score += (ghostRow - gs.current.row) * 2;
-          gs.current.row = ghostRow;
-          gs.lastDrop = 0; // Force immediate lock on next frame
-          break;
-        }
+        case "ArrowLeft": handleInput("left"); break;
+        case "ArrowRight": handleInput("right"); break;
+        case "ArrowDown": handleInput("down"); break;
+        case "ArrowUp": handleInput("rotate"); break;
+        case " ": handleInput("drop"); break;
       }
-
-      render();
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -588,6 +597,44 @@ export default function TetrisGame() {
         >
           {buttonLabel}
         </button>
+      )}
+
+      {/* Mobile Touch Controls */}
+      {gameStatus === "playing" && (
+        <div className="sm:hidden flex flex-col items-center gap-1 mt-2 select-none">
+          <button
+            onTouchStart={(e) => { e.preventDefault(); handleInput("rotate"); }}
+            className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 4V1L8 5l4 4V6a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="#1d1d1f"/></svg>
+          </button>
+          <div className="flex gap-1">
+            <button
+              onTouchStart={(e) => { e.preventDefault(); handleInput("left"); }}
+              className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10L13 4V16L4 10Z" fill="#1d1d1f"/></svg>
+            </button>
+            <button
+              onTouchStart={(e) => { e.preventDefault(); handleInput("down"); }}
+              className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 16L4 7H16L10 16Z" fill="#1d1d1f"/></svg>
+            </button>
+            <button
+              onTouchStart={(e) => { e.preventDefault(); handleInput("right"); }}
+              className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M16 10L7 4V16L16 10Z" fill="#1d1d1f"/></svg>
+            </button>
+          </div>
+          <button
+            onTouchStart={(e) => { e.preventDefault(); handleInput("drop"); }}
+            className="w-14 h-14 rounded-xl bg-white/80 border border-gray-200 flex items-center justify-center active:bg-gray-100 transition-colors"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 14L4 5H16L10 14Z" fill="#1d1d1f"/><rect x="4" y="16" width="12" height="2" rx="1" fill="#1d1d1f"/></svg>
+          </button>
+        </div>
       )}
     </div>
   );
