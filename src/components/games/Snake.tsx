@@ -6,8 +6,10 @@ type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type GameState = "idle" | "playing" | "gameover";
 type Position = { x: number; y: number };
 
-const GRID_SIZE = 20;
-const TICK_MS = 120;
+const GRID_SIZE = 15;
+const INITIAL_TICK_MS = 200;
+const MIN_TICK_MS = 80;
+const SPEED_STEP = 8; // ms faster per food eaten
 
 function randomFood(snake: Position[]): Position {
   let pos: Position;
@@ -25,10 +27,10 @@ export default function SnakeGame() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ---------- game state stored in refs so the tick fn never goes stale ----------
-  const snakeRef = useRef<Position[]>([{ x: 10, y: 10 }]);
+  const snakeRef = useRef<Position[]>([{ x: 7, y: 7 }]);
   const dirRef = useRef<Direction>("RIGHT");
   const nextDirRef = useRef<Direction>("RIGHT");
-  const foodRef = useRef<Position>({ x: 15, y: 10 });
+  const foodRef = useRef<Position>({ x: 11, y: 7 });
   const scoreRef = useRef(0);
   const gameStateRef = useRef<GameState>("idle");
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -160,6 +162,12 @@ export default function SnakeGame() {
     if (head.x === food.x && head.y === food.y) {
       scoreRef.current += 1;
       foodRef.current = randomFood(newSnake);
+      // speed up
+      if (tickRef.current) {
+        clearInterval(tickRef.current);
+        const newSpeed = Math.max(MIN_TICK_MS, INITIAL_TICK_MS - scoreRef.current * SPEED_STEP);
+        tickRef.current = setInterval(tick, newSpeed);
+      }
     } else {
       newSnake.pop();
     }
@@ -172,17 +180,17 @@ export default function SnakeGame() {
   // ---------- start / restart ----------
   const startGame = useCallback(() => {
     // reset state
-    snakeRef.current = [{ x: 10, y: 10 }];
+    snakeRef.current = [{ x: 7, y: 7 }];
     dirRef.current = "RIGHT";
     nextDirRef.current = "RIGHT";
     scoreRef.current = 0;
-    foodRef.current = randomFood([{ x: 10, y: 10 }]);
+    foodRef.current = randomFood([{ x: 7, y: 7 }]);
     gameStateRef.current = "playing";
     syncUI();
 
     // clear any existing interval
     if (tickRef.current) clearInterval(tickRef.current);
-    tickRef.current = setInterval(tick, TICK_MS);
+    tickRef.current = setInterval(tick, INITIAL_TICK_MS);
 
     draw();
   }, [tick, draw, syncUI]);
@@ -224,7 +232,9 @@ export default function SnakeGame() {
       const canvas = canvasRef.current;
       const container = containerRef.current;
       if (!canvas || !container) return;
-      const size = Math.min(container.clientWidth, 400);
+      const isMobile = window.innerWidth < 640;
+      const maxSize = isMobile ? 280 : 400;
+      const size = Math.min(container.clientWidth, maxSize);
       canvas.width = size;
       canvas.height = size;
       draw();
@@ -258,7 +268,7 @@ export default function SnakeGame() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center justify-between w-full max-w-[400px]">
+      <div className="flex items-center justify-between w-full max-w-[280px] sm:max-w-[400px]">
         <p className="text-sm font-medium text-gray-500">
           Punkte: <span className="text-gray-700 font-semibold">{score}</span>
         </p>
@@ -267,7 +277,7 @@ export default function SnakeGame() {
         )}
       </div>
 
-      <div ref={containerRef} className="w-full max-w-[400px]">
+      <div ref={containerRef} className="w-full max-w-[280px] sm:max-w-[400px]">
         <canvas
           ref={canvasRef}
           className="w-full rounded-xl border border-gray-100"
